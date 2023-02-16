@@ -7,6 +7,9 @@ with open('positions.txt', 'r') as f:
         x, y, z = map(float, line.strip().split())
         positions.append([x, y, z])
 
+# Input a box size to take into consideration the periodic boundary condition
+box_size = np.array([1, 1, 1])  # dimensions of the simulation box
+
 # convert positions list to numpy array
 positions = np.array(positions)
 num_positions = positions.shape[0]
@@ -15,7 +18,9 @@ num_positions = positions.shape[0]
 distances = np.zeros((num_positions, num_positions))
 for i in range(num_positions):
     for j in range(num_positions):
-        distances[i, j] = np.linalg.norm(positions[i] - positions[j])
+        r = positions[i] - positions[j]
+        r = r - box_size * np.round(r/box_size)  # apply the minimum image convention
+        distances[i, j] = np.linalg.norm(r)
         
 n = 4
 
@@ -34,5 +39,5 @@ for result in results:
 for i in range(num_positions):
     nearest_neighbors = np.argsort(distances[i])[1:n]  # exclude the first element, which is the distance to itself
     for j in nearest_neighbors:
-        #print(f"Position {i} has a nearest neighbor at position {j} with a distance of {distances[i, j]}")
+        print(f"Position {i} has a nearest neighbor at position {j} with a distance of {distances[i, j]}")
         print(f"{distances[i, j]}")
